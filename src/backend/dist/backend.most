@@ -1,0 +1,73 @@
+// Version: 1.0.0
+type Collection__211048818 =
+  {
+    createdAt : Timestamp__301639476;
+    description : Text;
+    id : Id__389469852;
+    name : Text
+  };
+type Data__791452850<K, V> =
+  {var count : Nat__490723111; kvs : [var ?(K, V)]};
+type DateKey__856556366 = Nat;
+type Difficulty__897718600 = {#learning; #new_; #relearning; #review};
+type FsrsState__680790871 =
+  {difficulty : Float; retrievability : Float; stability : Float};
+type Id__389469852 = Nat;
+type Internal__8484328<K, V> =
+  {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
+type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
+type List__415060402<T> = List__790383201<T>;
+type List__790383201<T> =
+  {
+    var blockIndex : Nat__490723111;
+    var blocks : [var [var ?T]];
+    var elementIndex : Nat__490723111
+  };
+type Map__158565046<K, V> = Map__297112838<K, V>;
+type Map__297112838<K, V> =
+  {var root : Node__46230540<K, V>; var size : Nat__490723111};
+type Map__605269027<K, V> = Map__158565046<K, V>;
+type MemoryItem__217281977 =
+  {
+    answer : Text;
+    collectionId : Id__389469852;
+    createdAt : Timestamp__301639476;
+    fsrs : FsrsState__680790871;
+    id : Id__389469852;
+    nextReviewDate : DateKey__856556366;
+    question : Text;
+    state : Difficulty__897718600;
+    tags : [Text];
+    updatedAt : Timestamp__301639476
+  };
+type Nat__490723111 = Nat__920180692;
+type Nat__920180692 = Nat;
+type Node__46230540<K, V> =
+  {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
+type Rating__358913594 = Nat;
+type ReviewEvent__889677128 =
+  {
+    collectionId : Id__389469852;
+    id : Id__389469852;
+    itemId : Id__389469852;
+    rating : Rating__358913594;
+    reviewedAt : Timestamp__301639476
+  };
+type Timestamp__301639476 = Int;
+actor {
+  stable collState :
+    {
+      collections : Map__605269027<Id__389469852, Collection__211048818>;
+      var nextId : Id__389469852
+    };
+  stable itemState :
+    {
+      items : Map__605269027<Id__389469852, MemoryItem__217281977>;
+      var nextId : Id__389469852
+    };
+  stable revState :
+    {
+      events : List__415060402<ReviewEvent__889677128>;
+      var nextId : Id__389469852
+    }
+};

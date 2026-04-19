@@ -1,0 +1,28 @@
+{
+  "overview": "An AI-powered memory assistant using spaced repetition and forgetting curve prediction to help users retain knowledge. Features adaptive study scheduling, daily review queues, progress tracking, and a detailed analytics dashboard with charts.",
+  "features": [
+    "Flashcard creation with rich text question/answer editor",
+    "Adaptive FSRS-based spaced repetition scheduling",
+    "Forgetting curve prediction with next review countdown",
+    "Daily study queue with overdue items prioritization",
+    "Recall rating system (Again/Hard/Good/Easy)",
+    "Collections/decks for organizing memory items",
+    "Analytics dashboard with progress charts and heatmaps",
+    "Study streak tracking and retention rate stats",
+    "In-app toast reminders for overdue items",
+    "Dark/light theme with persistent preference",
+    "Responsive mobile-friendly design"
+  ],
+  "category": "productivity",
+  "tags": [
+    "memory",
+    "spaced-repetition",
+    "flashcards",
+    "learning",
+    "analytics",
+    "productivity",
+    "fsrs",
+    "study"
+  ],
+  "last_updated": "2026-04-18T19:42:06.307Z"
+}

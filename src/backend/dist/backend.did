@@ -1,0 +1,107 @@
+type Timestamp = int;
+type ReviewEvent = 
+ record {
+   collectionId: Id;
+   id: Id;
+   itemId: Id;
+   rating: Rating;
+   reviewedAt: Timestamp;
+ };
+type Rating = nat;
+type MemoryItemUpdate = 
+ record {
+   answer: text;
+   question: text;
+   tags: vec text;
+ };
+type MemoryItemInput = 
+ record {
+   answer: text;
+   collectionId: Id;
+   question: text;
+   tags: vec text;
+ };
+type MemoryItem = 
+ record {
+   answer: text;
+   collectionId: Id;
+   createdAt: Timestamp;
+   fsrs: FsrsState;
+   id: Id;
+   nextReviewDate: DateKey;
+   question: text;
+   state: Difficulty;
+   tags: vec text;
+   updatedAt: Timestamp;
+ };
+type ItemFilter = 
+ record {
+   collectionId: opt Id;
+   dueBefore: opt DateKey;
+   tags: vec text;
+ };
+type Id = nat;
+type FsrsState = 
+ record {
+   difficulty: float64;
+   retrievability: float64;
+   stability: float64;
+ };
+type Difficulty = 
+ variant {
+   learning;
+   new;
+   relearning;
+   review;
+ };
+type DateKey = nat;
+type DashboardStats = 
+ record {
+   accuracyPercent: float64;
+   itemsDueToday: nat;
+   studyStreak: nat;
+   totalItems: nat;
+ };
+type DailyActivity = 
+ record {
+   correctCount: nat;
+   dateKey: DateKey;
+   reviewCount: nat;
+ };
+type CollectionStats = 
+ record {
+   averageAccuracy: float64;
+   collectionId: Id;
+   retentionRate: float64;
+   totalItems: nat;
+ };
+type CollectionInput = 
+ record {
+   description: text;
+   name: text;
+ };
+type Collection = 
+ record {
+   createdAt: Timestamp;
+   description: text;
+   id: Id;
+   name: text;
+ };
+service : {
+  createCollection: (input: CollectionInput) -> (Collection);
+  createItem: (input: MemoryItemInput) -> (MemoryItem);
+  deleteCollection: (id: Id) -> (bool);
+  deleteItem: (id: Id) -> (bool);
+  getCollection: (id: Id) -> (opt Collection) query;
+  getCollectionStats: (id: Id) -> (opt CollectionStats) query;
+  getDailyActivity: () -> (vec DailyActivity) query;
+  getDashboardStats: (todayKey: DateKey) -> (DashboardStats) query;
+  getDueItems: (todayKey: DateKey) -> (vec MemoryItem) query;
+  getItem: (id: Id) -> (opt MemoryItem) query;
+  listCollections: () -> (vec Collection) query;
+  listItems: (filter: ItemFilter) -> (vec MemoryItem) query;
+  listReviewEvents: () -> (vec ReviewEvent) query;
+  submitReview: (itemId: Id, rating: Rating) -> (opt ReviewEvent);
+  updateCollection: (id: Id, input: CollectionInput) -> (opt Collection);
+  updateItem: (id: Id, input: MemoryItemUpdate) -> (opt MemoryItem);
+}
