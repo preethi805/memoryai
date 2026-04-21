@@ -1,4 +1,4 @@
-import type { backendInterface, Collection, MemoryItem, DashboardStats, DailyActivity, CollectionStats, ReviewEvent } from "../backend";
+import type { backendInterface, Collection, MemoryItem, DashboardStats, DailyActivity, CollectionStats, ReviewEvent, UserProgress, Badge, XpEvent } from "../backend";
 import { Difficulty } from "../backend";
 
 const now = BigInt(Date.now()) * BigInt(1_000_000);
@@ -88,6 +88,29 @@ const reviewEvents: ReviewEvent[] = [
   { id: BigInt(2), itemId: BigInt(3), collectionId: BigInt(2), reviewedAt: now, rating: BigInt(2) },
 ];
 
+const badges: Badge[] = [
+  { id: "first_card", name: "First Card", description: "Create your first flashcard", iconKey: "card", unlockedAt: now },
+  { id: "streak_starter", name: "Streak Starter", description: "Achieve a 3-day study streak", iconKey: "flame" },
+  { id: "week_warrior", name: "Week Warrior", description: "Achieve a 7-day study streak", iconKey: "fire" },
+  { id: "month_master", name: "Month Master", description: "Achieve a 30-day study streak", iconKey: "crown" },
+  { id: "century", name: "Century", description: "Complete 100 total reviews", iconKey: "hundred" },
+  { id: "perfect_session", name: "Perfect Session", description: "Finish a session with all Good/Easy ratings", iconKey: "star" },
+  { id: "speed_learner", name: "Speed Learner", description: "Complete 50 reviews in a single day", iconKey: "lightning" },
+  { id: "memory_master", name: "Memory Master", description: "Complete 500 total reviews", iconKey: "brain" },
+];
+
+const mockProgress: UserProgress = {
+  totalXp: BigInt(340),
+  level: BigInt(1),
+  badges,
+  lastUpdated: now,
+};
+
+const xpEvents: XpEvent[] = [
+  { id: BigInt(1), userId: { toText: () => "mock-user" } as any, earnedAt: now, amount: BigInt(15), reason: "review" },
+  { id: BigInt(2), userId: { toText: () => "mock-user" } as any, earnedAt: now, amount: BigInt(20), reason: "review" },
+];
+
 export const mockBackend: backendInterface = {
   createCollection: async (input) => ({
     id: BigInt(Date.now()), name: input.name, description: input.description, createdAt: now,
@@ -120,4 +143,8 @@ export const mockBackend: backendInterface = {
     if (!item) return null;
     return { ...item, question: input.question, answer: input.answer, tags: input.tags, updatedAt: now };
   },
+  awardXpForReview: async (_rating) => mockProgress,
+  getProgress: async () => mockProgress,
+  listBadges: async () => badges,
+  listXpEvents: async () => xpEvents,
 };

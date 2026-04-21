@@ -3,15 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateMemoryItem } from "@/hooks/useQueries";
+import { useCreateMemoryItem, useUpdateMemoryItem } from "@/hooks/useQueries";
 import type { MemoryItem } from "@/types";
 import { Plus, Tag, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 interface CardEditorProps {
-  collectionId: string;
-  /** When provided, the editor is in edit mode */
+  collectionId: bigint;
   existingItem?: MemoryItem;
   onCancel: () => void;
   onSaved?: () => void;
@@ -30,7 +29,12 @@ export function CardEditor({
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(existingItem?.tags ?? []);
 
-  const { mutate: createItem, isPending } = useCreateMemoryItem();
+  const { mutate: createItem, isPending: createPending } =
+    useCreateMemoryItem();
+  const { mutate: updateItem, isPending: updatePending } =
+    useUpdateMemoryItem();
+
+  const isPending = createPending || updatePending;
 
   function addTag() {
     const trimmed = tagInput.trim().toLowerCase().replace(/\s+/g, "-");
@@ -55,10 +59,25 @@ export function CardEditor({
     e.preventDefault();
     if (!question.trim() || !answer.trim()) return;
 
-    if (isEditing) {
-      // Future: call updateMemoryItem when backend ready
-      toast.success("Card updated!");
-      onSaved?.();
+    if (isEditing && existingItem) {
+      updateItem(
+        {
+          id: existingItem.id,
+          collectionId,
+          question: question.trim(),
+          answer: answer.trim(),
+          tags,
+        },
+        {
+          onSuccess: () => {
+            toast.success("Card updated!");
+            onSaved?.();
+          },
+          onError: () => {
+            toast.error("Failed to update card");
+          },
+        },
+      );
       return;
     }
 
@@ -78,6 +97,9 @@ export function CardEditor({
           setTagInput("");
           onSaved?.();
         },
+        onError: () => {
+          toast.error("Failed to add card");
+        },
       },
     );
   }
@@ -92,7 +114,6 @@ export function CardEditor({
         {isEditing ? "Edit Card" : "Add New Card"}
       </h3>
 
-      {/* Question */}
       <div className="space-y-1.5">
         <Label
           htmlFor="card-question"
@@ -112,7 +133,6 @@ export function CardEditor({
         />
       </div>
 
-      {/* Answer */}
       <div className="space-y-1.5">
         <Label
           htmlFor="card-answer"
@@ -132,7 +152,6 @@ export function CardEditor({
         />
       </div>
 
-      {/* Tags */}
       <div className="space-y-1.5">
         <Label
           htmlFor="card-tags"
@@ -151,7 +170,7 @@ export function CardEditor({
               {tag}
               <button
                 type="button"
-                data-ocid={"card_editor.remove_tag_button"}
+                data-ocid="card_editor.remove_tag_button"
                 onClick={() => removeTag(tag)}
                 className="ml-0.5 rounded-sm hover:bg-muted-foreground/20 transition-colors p-0.5"
                 aria-label={`Remove tag ${tag}`}
@@ -173,7 +192,6 @@ export function CardEditor({
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex justify-end gap-2 pt-1">
         <Button
           type="button"

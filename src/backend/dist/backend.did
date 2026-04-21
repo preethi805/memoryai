@@ -1,3 +1,18 @@
+type XpEvent = 
+ record {
+   amount: nat;
+   earnedAt: Timestamp;
+   id: Id;
+   reason: text;
+   userId: principal;
+ };
+type UserProgress = 
+ record {
+   badges: vec Badge;
+   lastUpdated: Timestamp;
+   level: nat;
+   totalXp: nat;
+ };
 type Timestamp = int;
 type ReviewEvent = 
  record {
@@ -87,7 +102,16 @@ type Collection =
    id: Id;
    name: text;
  };
+type Badge = 
+ record {
+   description: text;
+   iconKey: text;
+   id: text;
+   name: text;
+   unlockedAt: opt Timestamp;
+ };
 service : {
+  awardXpForReview: (rating: Rating) -> (UserProgress);
   createCollection: (input: CollectionInput) -> (Collection);
   createItem: (input: MemoryItemInput) -> (MemoryItem);
   deleteCollection: (id: Id) -> (bool);
@@ -98,9 +122,12 @@ service : {
   getDashboardStats: (todayKey: DateKey) -> (DashboardStats) query;
   getDueItems: (todayKey: DateKey) -> (vec MemoryItem) query;
   getItem: (id: Id) -> (opt MemoryItem) query;
+  getProgress: () -> (opt UserProgress) query;
+  listBadges: () -> (vec Badge) query;
   listCollections: () -> (vec Collection) query;
   listItems: (filter: ItemFilter) -> (vec MemoryItem) query;
   listReviewEvents: () -> (vec ReviewEvent) query;
+  listXpEvents: () -> (vec XpEvent) query;
   submitReview: (itemId: Id, rating: Rating) -> (opt ReviewEvent);
   updateCollection: (id: Id, input: CollectionInput) -> (opt Collection);
   updateItem: (id: Id, input: MemoryItemUpdate) -> (opt MemoryItem);

@@ -1,14 +1,13 @@
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 
-// Ebbinghaus forgetting curve data: retention(t) = 100 * e^(-t/stability)
 function generateForgettingCurve(stability = 5) {
   return Array.from({ length: 20 }, (_, i) => {
     const days = i * 4;
@@ -50,12 +49,30 @@ export function ForgettingCurveChart({
           ))}
         </div>
       )}
-      <ResponsiveContainer width="100%" height={showAxes ? 180 : 140}>
-        <LineChart data={data}>
+      <ResponsiveContainer width="100%" height={showAxes ? 180 : 150}>
+        <AreaChart
+          data={data}
+          margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
+        >
+          <defs>
+            <linearGradient id="curveGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="5%"
+                stopColor="oklch(0.75 0.18 55)"
+                stopOpacity={0.4}
+              />
+              <stop
+                offset="95%"
+                stopColor="oklch(0.75 0.18 55)"
+                stopOpacity={0}
+              />
+            </linearGradient>
+          </defs>
           {showAxes && (
             <CartesianGrid
               strokeDasharray="3 3"
               stroke="oklch(var(--border))"
+              strokeOpacity={0.4}
             />
           )}
           {showAxes && (
@@ -79,26 +96,31 @@ export function ForgettingCurveChart({
           )}
           <Tooltip
             contentStyle={{
-              background: "oklch(var(--card))",
-              border: "1px solid oklch(var(--border))",
-              borderRadius: "8px",
+              background: "oklch(var(--card) / 0.85)",
+              backdropFilter: "blur(12px)",
+              border: "1px solid oklch(var(--border) / 0.3)",
+              borderRadius: "10px",
               fontSize: 12,
               color: "oklch(var(--foreground))",
             }}
-            labelStyle={{ color: "oklch(var(--foreground))" }}
-            itemStyle={{ color: "oklch(var(--chart-1))" }}
             formatter={(v: number) => [`${v}%`, "Retention"]}
             labelFormatter={(l) => `Day ${l}`}
           />
-          <Line
+          <Area
             type="monotone"
             dataKey="retention"
-            stroke="oklch(var(--chart-1))"
+            stroke="oklch(0.75 0.18 55)"
             strokeWidth={2.5}
+            fill="url(#curveGrad)"
             dot={false}
             strokeLinecap="round"
+            activeDot={{
+              r: 4,
+              fill: "oklch(0.75 0.18 55)",
+              filter: "drop-shadow(0 0 4px oklch(0.75 0.18 55))",
+            }}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

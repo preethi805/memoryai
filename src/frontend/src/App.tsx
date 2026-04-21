@@ -3,13 +3,13 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
-  redirect,
 } from "@tanstack/react-router";
 import { Layout } from "./components/Layout";
+import { GamificationProvider } from "./contexts/GamificationContext";
 
+import { AchievementsPage } from "./pages/Achievements";
 import { AnalyticsPage } from "./pages/Analytics";
 import { CollectionsPage } from "./pages/Collections";
-// ─── Page imports (lazy-ish — direct import for small app) ───────────────────
 import { DashboardPage } from "./pages/Dashboard";
 import { SettingsPage } from "./pages/Settings";
 import { StudyPage } from "./pages/Study";
@@ -41,6 +41,12 @@ const analyticsRoute = createRoute({
   component: AnalyticsPage,
 });
 
+const achievementsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/achievements",
+  component: AchievementsPage,
+});
+
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/settings",
@@ -52,6 +58,7 @@ const routeTree = rootRoute.addChildren([
   studyRoute,
   collectionsRoute,
   analyticsRoute,
+  achievementsRoute,
   settingsRoute,
 ]);
 
@@ -64,5 +71,9 @@ declare module "@tanstack/react-router" {
 }
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <GamificationProvider>
+      <RouterProvider router={router} />
+    </GamificationProvider>
+  );
 }

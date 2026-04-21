@@ -1,28 +1,27 @@
 {
-  "overview": "An AI-powered memory assistant using spaced repetition and forgetting curve prediction to help users retain knowledge. Features adaptive study scheduling, daily review queues, progress tracking, and a detailed analytics dashboard with charts.",
+  "overview": "MemoryAI is an AI-powered second brain and memory assistant. Study smarter with adaptive spaced repetition, gamified achievements, a stunning glass-morphism dashboard, and deep analytics to track every memory you build.",
   "features": [
-    "Flashcard creation with rich text question/answer editor",
-    "Adaptive FSRS-based spaced repetition scheduling",
-    "Forgetting curve prediction with next review countdown",
-    "Daily study queue with overdue items prioritization",
-    "Recall rating system (Again/Hard/Good/Easy)",
-    "Collections/decks for organizing memory items",
-    "Analytics dashboard with progress charts and heatmaps",
-    "Study streak tracking and retention rate stats",
-    "In-app toast reminders for overdue items",
-    "Dark/light theme with persistent preference",
-    "Responsive mobile-friendly design"
+    "Adaptive FSRS spaced repetition scheduling",
+    "Gamification with badges, XP, and level-up animations",
+    "Glassmorphism dashboard with animated stat widgets",
+    "Real backend integration replacing all mock data",
+    "Advanced analytics: learning velocity and forgetting patterns",
+    "Streak celebration animations and milestone confetti",
+    "Study sessions with 3D card flip and keyboard shortcuts",
+    "Dark and light theme with OKLCH color system",
+    "Collections management with per-deck stats",
+    "Mobile-responsive layout"
   ],
   "category": "productivity",
   "tags": [
-    "memory",
-    "spaced-repetition",
     "flashcards",
+    "spaced-repetition",
+    "second-brain",
+    "memory",
     "learning",
+    "gamification",
     "analytics",
-    "productivity",
-    "fsrs",
-    "study"
+    "ai"
   ],
-  "last_updated": "2026-04-18T19:42:06.307Z"
+  "last_updated": "2026-04-20T12:54:13.078Z"
 }

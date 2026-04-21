@@ -54,11 +54,32 @@ type ReviewEvent__889677128 =
     reviewedAt : Timestamp__301639476
   };
 type Timestamp__301639476 = Int;
+type UserProgressInternal__58078181 =
+  {
+    var level : Nat;
+    var totalXp : Nat;
+    unlockedBadges : Map__605269027<Text, Timestamp__301639476>
+  };
+type XpEvent__334964223 =
+  {
+    amount : Nat;
+    earnedAt : Timestamp__301639476;
+    id : Id__389469852;
+    reason : Text;
+    userId : Principal
+  };
 actor {
   stable collState :
     {
       collections : Map__605269027<Id__389469852, Collection__211048818>;
       var nextId : Id__389469852
+    };
+  stable gamState :
+    {
+      var nextEventId : Nat;
+      userProgress :
+        Map__605269027<Principal, UserProgressInternal__58078181>;
+      xpEvents : List__415060402<XpEvent__334964223>
     };
   stable itemState :
     {

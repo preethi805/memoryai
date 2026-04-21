@@ -30,11 +30,15 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  useCollectionStats,
   useCollections,
   useCreateCollection,
+  useDeleteCollection,
+  useDeleteMemoryItem,
   useMemoryItems,
 } from "@/hooks/useQueries";
-import type { Collection, Difficulty, MemoryItem } from "@/types";
+import type { Collection, MemoryItem } from "@/types";
+import { Difficulty } from "@/types";
 import {
   BookOpen,
   Calendar,
@@ -58,29 +62,40 @@ const COLLECTION_ACCENTS = [
   { border: "border-chart-5/30", icon: "text-chart-5", bg: "bg-chart-5/10" },
 ];
 
-const DIFFICULTY_STYLES: Record<
-  Difficulty,
-  { label: string; className: string }
-> = {
-  New: {
-    label: "New",
-    className: "border-chart-3/60 text-chart-3 bg-chart-3/10",
-  },
-  Learning: {
-    label: "Learning",
-    className: "border-chart-2/60 text-chart-2 bg-chart-2/10",
-  },
-  Review: {
-    label: "Review",
-    className: "border-chart-1/60 text-chart-1 bg-chart-1/10",
-  },
-  Relearning: {
-    label: "Relearning",
-    className: "border-chart-4/60 text-chart-4 bg-chart-4/10",
-  },
-};
+const DIFFICULTY_LABELS: Record<string, { label: string; className: string }> =
+  {
+    [Difficulty.new_]: {
+      label: "New",
+      className: "border-chart-3/60 text-chart-3 bg-chart-3/10",
+    },
+    [Difficulty.learning]: {
+      label: "Learning",
+      className: "border-chart-2/60 text-chart-2 bg-chart-2/10",
+    },
+    [Difficulty.review]: {
+      label: "Review",
+      className: "border-chart-1/60 text-chart-1 bg-chart-1/10",
+    },
+    [Difficulty.relearning]: {
+      label: "Relearning",
+      className: "border-chart-4/60 text-chart-4 bg-chart-4/10",
+    },
+  };
 
-// ─── CardItem ────────────────────────────────────────────────────────────────
+// ─── Next review date display ─────────────────────────────────────────────────
+
+function formatNextReview(dateKey: bigint): string {
+  const dk = String(dateKey);
+  if (dk.length === 8) {
+    const y = dk.slice(0, 4);
+    const m = dk.slice(4, 6);
+    const d = dk.slice(6, 8);
+    return `${y}-${m}-${d}`;
+  }
+  return dk;
+}
+
+// ─── CardItem ─────────────────────────────────────────────────────────────────
 
 function CardItem({
   item,
@@ -93,7 +108,8 @@ function CardItem({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
-  const diff = DIFFICULTY_STYLES[item.state];
+  const diff =
+    DIFFICULTY_LABELS[item.state] ?? DIFFICULTY_LABELS[Difficulty.new_];
 
   if (editing) {
     return (
@@ -111,7 +127,6 @@ function CardItem({
       data-ocid={`collection_detail.card.item.${idx + 1}`}
       className="rounded-lg border border-border bg-background hover:bg-muted/30 transition-smooth"
     >
-      {/* Row header — always visible */}
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
@@ -138,7 +153,7 @@ function CardItem({
             </Badge>
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Calendar className="w-3 h-3" />
-              {item.nextReviewDate}
+              {formatNextReview(item.nextReviewDate)}
             </span>
             {item.tags.slice(0, 3).map((tag) => (
               <span key={tag} className="text-xs text-muted-foreground">
@@ -149,7 +164,6 @@ function CardItem({
         </div>
       </button>
 
-      {/* Expanded detail */}
       {expanded && (
         <div className="px-4 pb-4 space-y-3 border-t border-border/50 pt-3">
           <div>
@@ -169,12 +183,10 @@ function CardItem({
                 </strong>
               </span>
               <span>
-                Reps:{" "}
-                <strong className="text-foreground">{item.fsrs.reps}</strong>
-              </span>
-              <span>
-                Lapses:{" "}
-                <strong className="text-foreground">{item.fsrs.lapses}</strong>
+                Retrieval:{" "}
+                <strong className="text-foreground">
+                  {Math.round(item.fsrs.retrievability * 100)}%
+                </strong>
               </span>
             </div>
             <div className="flex gap-2 shrink-0">
@@ -204,6 +216,47 @@ function CardItem({
   );
 }
 
+// ─── CollectionStats bar ──────────────────────────────────────────────────────
+
+function CollectionStatsBar({ collectionId }: { collectionId: bigint }) {
+  const { data: stats, isLoading } = useCollectionStats(collectionId);
+
+  if (isLoading) {
+    return (
+      <div className="flex gap-3 mt-1">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+    );
+  }
+
+  if (!stats) return null;
+
+  return (
+    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+      <span>
+        Accuracy:{" "}
+        <strong className="text-foreground">
+          {stats.averageAccuracy.toFixed(0)}%
+        </strong>
+      </span>
+      <span>•</span>
+      <span>
+        Retention:{" "}
+        <strong className="text-foreground">
+          {(stats.retentionRate * 100).toFixed(0)}%
+        </strong>
+      </span>
+      <span>•</span>
+      <span>
+        Total:{" "}
+        <strong className="text-foreground">{Number(stats.totalItems)}</strong>{" "}
+        cards
+      </span>
+    </div>
+  );
+}
+
 // ─── CollectionDetail ─────────────────────────────────────────────────────────
 
 function CollectionDetail({
@@ -218,6 +271,8 @@ function CollectionDetail({
   const [deletingCard, setDeletingCard] = useState<MemoryItem | null>(null);
 
   const { data: items, isLoading } = useMemoryItems(collection.id);
+  const { mutate: deleteItem, isPending: deletingPending } =
+    useDeleteMemoryItem();
 
   const filtered =
     items?.filter(
@@ -227,10 +282,19 @@ function CollectionDetail({
         i.tags.some((t) => t.toLowerCase().includes(cardSearch.toLowerCase())),
     ) ?? [];
 
-  function handleDeleteCard(_item: MemoryItem) {
-    // future: call actor.deleteMemoryItem
-    toast.success("Card deleted");
-    setDeletingCard(null);
+  function handleDeleteCard(item: MemoryItem) {
+    deleteItem(
+      { id: item.id, collectionId: item.collectionId },
+      {
+        onSuccess: () => {
+          toast.success("Card deleted");
+          setDeletingCard(null);
+        },
+        onError: () => {
+          toast.error("Failed to delete card");
+        },
+      },
+    );
   }
 
   return (
@@ -238,7 +302,6 @@ function CollectionDetail({
       data-ocid="collection_detail.panel"
       className="mt-4 space-y-4 px-4 pb-5"
     >
-      {/* Detail toolbar */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -270,7 +333,8 @@ function CollectionDetail({
         </Button>
       </div>
 
-      {/* Add card form */}
+      <CollectionStatsBar collectionId={collection.id} />
+
       {addingCard && (
         <CardEditor
           collectionId={collection.id}
@@ -279,7 +343,6 @@ function CollectionDetail({
         />
       )}
 
-      {/* Cards list */}
       {isLoading ? (
         <div className="space-y-2">
           {["l1", "l2", "l3"].map((k) => (
@@ -318,7 +381,7 @@ function CollectionDetail({
         <div data-ocid="collection_detail.cards_list" className="space-y-2">
           {filtered.map((item, idx) => (
             <CardItem
-              key={item.id}
+              key={item.id.toString()}
               item={item}
               idx={idx}
               onDelete={setDeletingCard}
@@ -327,7 +390,6 @@ function CollectionDetail({
         </div>
       )}
 
-      {/* Delete card dialog */}
       <AlertDialog
         open={!!deletingCard}
         onOpenChange={(open) => !open && setDeletingCard(null)}
@@ -350,9 +412,10 @@ function CollectionDetail({
             <AlertDialogAction
               data-ocid="collection_detail.delete_card_confirm_button"
               onClick={() => deletingCard && handleDeleteCard(deletingCard)}
+              disabled={deletingPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete Card
+              {deletingPending ? "Deleting…" : "Delete Card"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -373,6 +436,7 @@ function CollectionCard({
   onDelete: (c: Collection) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const { data: items } = useMemoryItems(collection.id);
   const accent = COLLECTION_ACCENTS[idx % COLLECTION_ACCENTS.length];
 
   return (
@@ -380,7 +444,6 @@ function CollectionCard({
       data-ocid={`collections.item.${idx + 1}`}
       className={`border shadow-subtle transition-smooth ${accent.border} ${expanded ? "shadow-elevated" : ""}`}
     >
-      {/* Card header — click to expand */}
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
@@ -418,15 +481,13 @@ function CollectionCard({
         <CardContent className="pt-0 pb-3">
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
-              <BookOpen className="w-3.5 h-3.5" /> 12 items
+              <BookOpen className="w-3.5 h-3.5" />
+              {items ? `${items.length} items` : "Loading…"}
             </span>
-            <span>•</span>
-            <span>4 due today</span>
           </div>
         </CardContent>
       </button>
 
-      {/* Expanded detail */}
       {expanded && (
         <div className="border-t border-border/50">
           <CollectionDetail
@@ -451,6 +512,8 @@ export function CollectionsPage() {
 
   const { data: collections, isLoading } = useCollections();
   const { mutate: createCollection, isPending } = useCreateCollection();
+  const { mutate: deleteCollection, isPending: deletePending } =
+    useDeleteCollection();
 
   const filtered =
     collections?.filter(
@@ -470,14 +533,24 @@ export function CollectionsPage() {
           setNewName("");
           setNewDesc("");
         },
+        onError: () => {
+          toast.error("Failed to create collection");
+        },
       },
     );
   }
 
   function handleDeleteCollection() {
-    // future: call actor.deleteCollection
-    toast.success(`"${deletingCollection?.name}" deleted`);
-    setDeletingCollection(null);
+    if (!deletingCollection) return;
+    deleteCollection(deletingCollection.id, {
+      onSuccess: () => {
+        toast.success(`"${deletingCollection.name}" deleted`);
+        setDeletingCollection(null);
+      },
+      onError: () => {
+        toast.error("Failed to delete collection");
+      },
+    });
   }
 
   return (
@@ -485,7 +558,6 @@ export function CollectionsPage() {
       data-ocid="collections.page"
       className="p-6 max-w-7xl mx-auto space-y-6"
     >
-      {/* Page header */}
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">
@@ -504,7 +576,6 @@ export function CollectionsPage() {
         </Button>
       </div>
 
-      {/* Search */}
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
@@ -516,7 +587,6 @@ export function CollectionsPage() {
         />
       </div>
 
-      {/* Collection grid */}
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {["c1", "c2", "c3", "c4", "c5", "c6"].map((k) => (
@@ -560,7 +630,7 @@ export function CollectionsPage() {
         >
           {filtered.map((c, i) => (
             <CollectionCard
-              key={c.id}
+              key={c.id.toString()}
               collection={c}
               idx={i}
               onDelete={setDeletingCollection}
@@ -569,7 +639,6 @@ export function CollectionsPage() {
         </div>
       )}
 
-      {/* Create collection dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent
           data-ocid="collections.create_dialog"
@@ -621,7 +690,6 @@ export function CollectionsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete collection dialog */}
       <AlertDialog
         open={!!deletingCollection}
         onOpenChange={(open) => !open && setDeletingCollection(null)}
@@ -647,9 +715,10 @@ export function CollectionsPage() {
             <AlertDialogAction
               data-ocid="collections.delete_confirm_button"
               onClick={handleDeleteCollection}
+              disabled={deletePending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete Collection
+              {deletePending ? "Deleting…" : "Delete Collection"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

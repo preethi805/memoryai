@@ -10,6 +10,13 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface Badge {
+  'id' : string,
+  'unlockedAt' : [] | [Timestamp],
+  'name' : string,
+  'description' : string,
+  'iconKey' : string,
+}
 export interface Collection {
   'id' : Id,
   'name' : string,
@@ -82,7 +89,21 @@ export interface ReviewEvent {
   'rating' : Rating,
 }
 export type Timestamp = bigint;
+export interface UserProgress {
+  'totalXp' : bigint,
+  'badges' : Array<Badge>,
+  'lastUpdated' : Timestamp,
+  'level' : bigint,
+}
+export interface XpEvent {
+  'id' : Id,
+  'userId' : Principal,
+  'earnedAt' : Timestamp,
+  'amount' : bigint,
+  'reason' : string,
+}
 export interface _SERVICE {
+  'awardXpForReview' : ActorMethod<[Rating], UserProgress>,
   'createCollection' : ActorMethod<[CollectionInput], Collection>,
   'createItem' : ActorMethod<[MemoryItemInput], MemoryItem>,
   'deleteCollection' : ActorMethod<[Id], boolean>,
@@ -93,9 +114,12 @@ export interface _SERVICE {
   'getDashboardStats' : ActorMethod<[DateKey], DashboardStats>,
   'getDueItems' : ActorMethod<[DateKey], Array<MemoryItem>>,
   'getItem' : ActorMethod<[Id], [] | [MemoryItem]>,
+  'getProgress' : ActorMethod<[], [] | [UserProgress]>,
+  'listBadges' : ActorMethod<[], Array<Badge>>,
   'listCollections' : ActorMethod<[], Array<Collection>>,
   'listItems' : ActorMethod<[ItemFilter], Array<MemoryItem>>,
   'listReviewEvents' : ActorMethod<[], Array<ReviewEvent>>,
+  'listXpEvents' : ActorMethod<[], Array<XpEvent>>,
   'submitReview' : ActorMethod<[Id, Rating], [] | [ReviewEvent]>,
   'updateCollection' : ActorMethod<[Id, CollectionInput], [] | [Collection]>,
   'updateItem' : ActorMethod<[Id, MemoryItemUpdate], [] | [MemoryItem]>,

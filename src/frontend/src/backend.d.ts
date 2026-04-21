@@ -33,11 +33,24 @@ export interface DashboardStats {
     totalItems: bigint;
     accuracyPercent: number;
 }
+export interface UserProgress {
+    totalXp: bigint;
+    badges: Array<Badge>;
+    lastUpdated: Timestamp;
+    level: bigint;
+}
 export interface MemoryItemInput {
     question: string;
     collectionId: Id;
     tags: Array<string>;
     answer: string;
+}
+export interface Badge {
+    id: string;
+    unlockedAt?: Timestamp;
+    name: string;
+    description: string;
+    iconKey: string;
 }
 export interface Collection {
     id: Id;
@@ -74,6 +87,13 @@ export interface CollectionStats {
     totalItems: bigint;
     retentionRate: number;
 }
+export interface XpEvent {
+    id: Id;
+    userId: Principal;
+    earnedAt: Timestamp;
+    amount: bigint;
+    reason: string;
+}
 export interface CollectionInput {
     name: string;
     description: string;
@@ -85,6 +105,7 @@ export enum Difficulty {
     learning = "learning"
 }
 export interface backendInterface {
+    awardXpForReview(rating: Rating): Promise<UserProgress>;
     createCollection(input: CollectionInput): Promise<Collection>;
     createItem(input: MemoryItemInput): Promise<MemoryItem>;
     deleteCollection(id: Id): Promise<boolean>;
@@ -95,9 +116,12 @@ export interface backendInterface {
     getDashboardStats(todayKey: DateKey): Promise<DashboardStats>;
     getDueItems(todayKey: DateKey): Promise<Array<MemoryItem>>;
     getItem(id: Id): Promise<MemoryItem | null>;
+    getProgress(): Promise<UserProgress | null>;
+    listBadges(): Promise<Array<Badge>>;
     listCollections(): Promise<Array<Collection>>;
     listItems(filter: ItemFilter): Promise<Array<MemoryItem>>;
     listReviewEvents(): Promise<Array<ReviewEvent>>;
+    listXpEvents(): Promise<Array<XpEvent>>;
     submitReview(itemId: Id, rating: Rating): Promise<ReviewEvent | null>;
     updateCollection(id: Id, input: CollectionInput): Promise<Collection | null>;
     updateItem(id: Id, input: MemoryItemUpdate): Promise<MemoryItem | null>;

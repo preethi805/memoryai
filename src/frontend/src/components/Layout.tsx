@@ -11,7 +11,6 @@ export function Layout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { theme } = useTheme();
 
-  // Apply theme on mount
   useEffect(() => {
     const root = document.documentElement;
     if (theme === "dark") root.classList.add("dark");
@@ -21,10 +20,39 @@ export function Layout() {
   return (
     <div
       data-ocid="layout"
-      className="flex h-screen overflow-hidden bg-background"
+      className="flex h-screen overflow-hidden bg-background relative"
     >
+      {/* Animated gradient mesh background */}
+      <div className="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
+        {/* Deep space orbs */}
+        <div
+          className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full opacity-[0.07]"
+          style={{
+            background:
+              "radial-gradient(circle, oklch(0.75 0.28 265) 0%, transparent 70%)",
+            animation: "float 12s ease-in-out infinite",
+          }}
+        />
+        <div
+          className="absolute bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] rounded-full opacity-[0.06]"
+          style={{
+            background:
+              "radial-gradient(circle, oklch(0.7 0.28 165) 0%, transparent 70%)",
+            animation: "float 16s ease-in-out infinite reverse",
+          }}
+        />
+        <div
+          className="absolute top-[40%] left-[40%] w-[30vw] h-[30vw] rounded-full opacity-[0.04]"
+          style={{
+            background:
+              "radial-gradient(circle, oklch(0.65 0.22 320) 0%, transparent 70%)",
+            animation: "float 10s ease-in-out infinite 2s",
+          }}
+        />
+      </div>
+
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex">
+      <div className="hidden md:flex relative z-20">
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed((v) => !v)}
@@ -52,12 +80,9 @@ export function Layout() {
       )}
 
       {/* Main content */}
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden relative z-10">
         <Header onMenuClick={() => setMobileSidebarOpen(true)} />
-        <main
-          data-ocid="main_content"
-          className={cn("flex-1 overflow-y-auto bg-background")}
-        >
+        <main data-ocid="main_content" className={cn("flex-1 overflow-y-auto")}>
           <div className="fade-in">
             <Outlet />
           </div>

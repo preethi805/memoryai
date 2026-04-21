@@ -8,12 +8,26 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const Rating = IDL.Nat;
+export const Timestamp = IDL.Int;
+export const Badge = IDL.Record({
+  'id' : IDL.Text,
+  'unlockedAt' : IDL.Opt(Timestamp),
+  'name' : IDL.Text,
+  'description' : IDL.Text,
+  'iconKey' : IDL.Text,
+});
+export const UserProgress = IDL.Record({
+  'totalXp' : IDL.Nat,
+  'badges' : IDL.Vec(Badge),
+  'lastUpdated' : Timestamp,
+  'level' : IDL.Nat,
+});
 export const CollectionInput = IDL.Record({
   'name' : IDL.Text,
   'description' : IDL.Text,
 });
 export const Id = IDL.Nat;
-export const Timestamp = IDL.Int;
 export const Collection = IDL.Record({
   'id' : Id,
   'name' : IDL.Text,
@@ -72,13 +86,19 @@ export const ItemFilter = IDL.Record({
   'tags' : IDL.Vec(IDL.Text),
   'dueBefore' : IDL.Opt(DateKey),
 });
-export const Rating = IDL.Nat;
 export const ReviewEvent = IDL.Record({
   'id' : Id,
   'itemId' : Id,
   'collectionId' : Id,
   'reviewedAt' : Timestamp,
   'rating' : Rating,
+});
+export const XpEvent = IDL.Record({
+  'id' : Id,
+  'userId' : IDL.Principal,
+  'earnedAt' : Timestamp,
+  'amount' : IDL.Nat,
+  'reason' : IDL.Text,
 });
 export const MemoryItemUpdate = IDL.Record({
   'question' : IDL.Text,
@@ -87,6 +107,7 @@ export const MemoryItemUpdate = IDL.Record({
 });
 
 export const idlService = IDL.Service({
+  'awardXpForReview' : IDL.Func([Rating], [UserProgress], []),
   'createCollection' : IDL.Func([CollectionInput], [Collection], []),
   'createItem' : IDL.Func([MemoryItemInput], [MemoryItem], []),
   'deleteCollection' : IDL.Func([Id], [IDL.Bool], []),
@@ -97,9 +118,12 @@ export const idlService = IDL.Service({
   'getDashboardStats' : IDL.Func([DateKey], [DashboardStats], ['query']),
   'getDueItems' : IDL.Func([DateKey], [IDL.Vec(MemoryItem)], ['query']),
   'getItem' : IDL.Func([Id], [IDL.Opt(MemoryItem)], ['query']),
+  'getProgress' : IDL.Func([], [IDL.Opt(UserProgress)], ['query']),
+  'listBadges' : IDL.Func([], [IDL.Vec(Badge)], ['query']),
   'listCollections' : IDL.Func([], [IDL.Vec(Collection)], ['query']),
   'listItems' : IDL.Func([ItemFilter], [IDL.Vec(MemoryItem)], ['query']),
   'listReviewEvents' : IDL.Func([], [IDL.Vec(ReviewEvent)], ['query']),
+  'listXpEvents' : IDL.Func([], [IDL.Vec(XpEvent)], ['query']),
   'submitReview' : IDL.Func([Id, Rating], [IDL.Opt(ReviewEvent)], []),
   'updateCollection' : IDL.Func(
       [Id, CollectionInput],
@@ -112,12 +136,26 @@ export const idlService = IDL.Service({
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const Rating = IDL.Nat;
+  const Timestamp = IDL.Int;
+  const Badge = IDL.Record({
+    'id' : IDL.Text,
+    'unlockedAt' : IDL.Opt(Timestamp),
+    'name' : IDL.Text,
+    'description' : IDL.Text,
+    'iconKey' : IDL.Text,
+  });
+  const UserProgress = IDL.Record({
+    'totalXp' : IDL.Nat,
+    'badges' : IDL.Vec(Badge),
+    'lastUpdated' : Timestamp,
+    'level' : IDL.Nat,
+  });
   const CollectionInput = IDL.Record({
     'name' : IDL.Text,
     'description' : IDL.Text,
   });
   const Id = IDL.Nat;
-  const Timestamp = IDL.Int;
   const Collection = IDL.Record({
     'id' : Id,
     'name' : IDL.Text,
@@ -176,13 +214,19 @@ export const idlFactory = ({ IDL }) => {
     'tags' : IDL.Vec(IDL.Text),
     'dueBefore' : IDL.Opt(DateKey),
   });
-  const Rating = IDL.Nat;
   const ReviewEvent = IDL.Record({
     'id' : Id,
     'itemId' : Id,
     'collectionId' : Id,
     'reviewedAt' : Timestamp,
     'rating' : Rating,
+  });
+  const XpEvent = IDL.Record({
+    'id' : Id,
+    'userId' : IDL.Principal,
+    'earnedAt' : Timestamp,
+    'amount' : IDL.Nat,
+    'reason' : IDL.Text,
   });
   const MemoryItemUpdate = IDL.Record({
     'question' : IDL.Text,
@@ -191,6 +235,7 @@ export const idlFactory = ({ IDL }) => {
   });
   
   return IDL.Service({
+    'awardXpForReview' : IDL.Func([Rating], [UserProgress], []),
     'createCollection' : IDL.Func([CollectionInput], [Collection], []),
     'createItem' : IDL.Func([MemoryItemInput], [MemoryItem], []),
     'deleteCollection' : IDL.Func([Id], [IDL.Bool], []),
@@ -205,9 +250,12 @@ export const idlFactory = ({ IDL }) => {
     'getDashboardStats' : IDL.Func([DateKey], [DashboardStats], ['query']),
     'getDueItems' : IDL.Func([DateKey], [IDL.Vec(MemoryItem)], ['query']),
     'getItem' : IDL.Func([Id], [IDL.Opt(MemoryItem)], ['query']),
+    'getProgress' : IDL.Func([], [IDL.Opt(UserProgress)], ['query']),
+    'listBadges' : IDL.Func([], [IDL.Vec(Badge)], ['query']),
     'listCollections' : IDL.Func([], [IDL.Vec(Collection)], ['query']),
     'listItems' : IDL.Func([ItemFilter], [IDL.Vec(MemoryItem)], ['query']),
     'listReviewEvents' : IDL.Func([], [IDL.Vec(ReviewEvent)], ['query']),
+    'listXpEvents' : IDL.Func([], [IDL.Vec(XpEvent)], ['query']),
     'submitReview' : IDL.Func([Id, Rating], [IDL.Opt(ReviewEvent)], []),
     'updateCollection' : IDL.Func(
         [Id, CollectionInput],
